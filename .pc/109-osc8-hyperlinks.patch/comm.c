@@ -128,7 +128,6 @@ struct comm comms[RC_LAST + 1] =
   { "help",		NEED_LAYER|ARGS_02,		{NULL} },
   { "history",		NEED_DISPLAY|NEED_FORE|ARGS_0,	{NULL} },
   { "hstatus",		NEED_FORE|ARGS_1,		{NULL} },
-  { "hyperlinks",	ARGS_01,			{NULL} },
   { "idle",		ARGS_0|ARGS_ORMORE,		{NULL} },
   { "ignorecase",	ARGS_01,			{NULL} },
   { "info",		CAN_QUERY|NEED_LAYER|ARGS_0,	{NULL} },

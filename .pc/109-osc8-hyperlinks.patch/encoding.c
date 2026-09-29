@@ -506,7 +506,6 @@ struct mline *recode_mline(struct mline *ml, int w, int from, int to)
 	rl->attr = ml->attr;
 	rl->colorbg = ml->colorbg;
 	rl->colorfg = ml->colorfg;
-	rl->linkid = ml->linkid;
 	for (i = 0; i < w; i++) {
 		c = ml->image[i] | (ml->font[i] << 8);
 		if (from != UTF8 && c < 256)

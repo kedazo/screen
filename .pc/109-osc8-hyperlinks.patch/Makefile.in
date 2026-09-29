@@ -50,7 +50,7 @@ SHELL=/bin/sh
 
 CFILES=	screen.c \
 	acls.c ansi.c attacher.c backtick.c canvas.c comm.c \
-	display.c encoding.c fileio.c help.c hyperlink.c input.c kmapdef.c layer.c \
+	display.c encoding.c fileio.c help.c input.c kmapdef.c layer.c \
 	layout.c list_display.c list_generic.c list_license.o list_window.c logfile.c mark.c \
 	misc.c process.c pty.c resize.c sched.c search.c socket.c telnet.c \
 	term.c termcap.c tty.c utmp.c viewport.c window.c winmsg.c \
@@ -176,117 +176,116 @@ depend.in: $(CFILES) term.h
 
 ### Dependencies:
 screen.o: screen.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h winmsg.h winmsgbuf.h winmsgcond.h backtick.h \
  fileio.h mark.h attacher.h encoding.h help.h misc.h process.h socket.h \
  termcap.h tty.h utmp.h
 ansi.o: ansi.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h winmsg.h winmsgbuf.h winmsgcond.h backtick.h encoding.h \
  fileio.h help.h mark.h misc.h process.h resize.h
 fileio.o: fileio.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h fileio.h misc.h process.h winmsgbuf.h termcap.h encoding.h
 mark.o: mark.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h encoding.h fileio.h mark.h process.h winmsgbuf.h search.h
 misc.o: misc.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h
 resize.o: resize.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h process.h winmsgbuf.h resize.h telnet.h
 socket.o: socket.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h encoding.h fileio.h list_generic.h misc.h process.h \
  winmsgbuf.h resize.h socket.h termcap.h tty.h utmp.h
 search.o: search.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h mark.h input.h
 tty.o: tty.c config.h screen.h os.h ansi.h sched.h acls.h comm.h layer.h \
- term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h logfile.h \
+ term.h image.h canvas.h display.h layout.h viewport.h window.h logfile.h \
  fileio.h misc.h pty.h telnet.h tty.h
 term.o: term.c term.h
 window.o: window.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h winmsg.h winmsgbuf.h winmsgcond.h backtick.h fileio.h help.h \
  input.h mark.h misc.h process.h pty.h resize.h telnet.h termcap.h tty.h \
  utmp.h
 utmp.o: utmp.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h misc.h tty.h utmp.h
 help.o: help.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h misc.h list_generic.h process.h winmsgbuf.h
 termcap.o: termcap.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h encoding.h misc.h process.h winmsgbuf.h resize.h termcap.h
 input.o: input.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h misc.h
 attacher.o: attacher.c config.h screen.h os.h ansi.h sched.h acls.h \
  comm.h layer.h term.h image.h canvas.h display.h layout.h viewport.h \
- window.h hyperlink.h logfile.h misc.h socket.h tty.h
+ window.h logfile.h misc.h socket.h tty.h
 pty.o: pty.c config.h screen.h os.h ansi.h sched.h acls.h comm.h layer.h \
- term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h logfile.h
+ term.h image.h canvas.h display.h layout.h viewport.h window.h logfile.h
 process.o: process.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h winmsg.h winmsgbuf.h winmsgcond.h backtick.h encoding.h \
  fileio.h help.h input.h kmapdef.h list_generic.h mark.h misc.h process.h \
  resize.h search.h socket.h telnet.h termcap.h tty.h utmp.h
 display.o: display.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h winmsg.h winmsgbuf.h winmsgcond.h backtick.h encoding.h mark.h \
  misc.h process.h pty.h resize.h termcap.h tty.h
 comm.o: comm.c config.h os.h screen.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h
 kmapdef.o: kmapdef.c config.h
 acls.o: acls.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h mark.h misc.h process.h winmsgbuf.h
 logfile.o: logfile.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h misc.h
 layer.o: layer.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h encoding.h mark.h tty.h
 winmsg.o: winmsg.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h winmsg.h winmsgbuf.h winmsgcond.h backtick.h fileio.h \
  process.h mark.h
 winmsgbuf.o: winmsgbuf.c winmsgbuf.h screen.h os.h ansi.h sched.h acls.h \
  comm.h layer.h term.h image.h canvas.h display.h layout.h viewport.h \
- window.h hyperlink.h logfile.h
+ window.h logfile.h
 winmsgcond.o: winmsgcond.c winmsgcond.h
-hyperlink.o: hyperlink.c hyperlink.h
 backtick.o: backtick.c backtick.h screen.h os.h ansi.h sched.h acls.h \
  comm.h layer.h term.h image.h canvas.h display.h layout.h viewport.h \
- window.h hyperlink.h logfile.h fileio.h
+ window.h logfile.h fileio.h
 sched.o: sched.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h
 telnet.o: telnet.c config.h comm.h
 encoding.o: encoding.c config.h screen.h os.h ansi.h sched.h acls.h \
  comm.h layer.h term.h image.h canvas.h display.h layout.h viewport.h \
- window.h hyperlink.h logfile.h encoding.h fileio.h
+ window.h logfile.h encoding.h fileio.h
 canvas.o: canvas.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h help.h list_generic.h resize.h
 layout.o: layout.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
- layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h hyperlink.h \
+ layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h fileio.h misc.h process.h winmsgbuf.h resize.h
 viewport.o: viewport.c config.h screen.h os.h ansi.h sched.h acls.h \
  comm.h layer.h term.h image.h canvas.h display.h layout.h viewport.h \
- window.h hyperlink.h logfile.h
+ window.h logfile.h
 list_display.o: list_display.c config.h screen.h os.h ansi.h sched.h \
  acls.h comm.h layer.h term.h image.h canvas.h display.h layout.h \
- viewport.h window.h hyperlink.h logfile.h list_generic.h misc.h
+ viewport.h window.h logfile.h list_generic.h misc.h
 list_generic.o: list_generic.c config.h screen.h os.h ansi.h sched.h \
  acls.h comm.h layer.h term.h image.h canvas.h display.h layout.h \
- viewport.h window.h hyperlink.h logfile.h input.h list_generic.h misc.h
+ viewport.h window.h logfile.h input.h list_generic.h misc.h
 list_window.o: list_window.c config.h screen.h os.h ansi.h sched.h acls.h \
  comm.h layer.h term.h image.h canvas.h display.h layout.h viewport.h \
- window.h hyperlink.h logfile.h winmsg.h winmsgbuf.h winmsgcond.h backtick.h input.h \
+ window.h logfile.h winmsg.h winmsgbuf.h winmsgcond.h backtick.h input.h \
  list_generic.h misc.h process.h
 list_license.o: list_license.c list_generic.h misc.h comm.h

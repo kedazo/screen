@@ -1,3 +1,18 @@
+screen (5.0.2-1+osc8~noble1) noble; urgency=medium
+
+  * Add patch 109: OSC 8 hyperlink support. Links are stored per cell and
+    survive redraws, window switches, regions, copy mode and reattaching.
+    They are sent to terminals with the new HL capability (on by default
+    for known capable terminals) and can be toggled with the new
+    "hyperlinks on|off" command.
+  * Add autopkgtest for OSC 8 hyperlinks.
+  * Backport to Ubuntu 24.04 (noble): build with debhelper compat 13.
+  * debian/rules: always remove debian/screen-udeb on clean; with the
+    noudeb build profile (Ubuntu default) dh_clean skips it and a second
+    build failed in override_dh_auto_install.
+
+ -- David Kedves <kedz@kedz.eu>  Tue, 29 Sep 2026 16:02:36 +0200
+
 screen (5.0.2-1) unstable; urgency=medium
 
   [ Peter Dey ]

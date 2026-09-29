@@ -4682,20 +4682,6 @@ static void DoCommandTruecolor(struct action *act)
 		Activate(-1);
 }
 
-static void DoCommandHyperlinks(struct action *act)
-{
-	bool b;
-
-	if (!act->args[0]) {
-		OutputMsg(0, "OSC 8 hyperlinks are turned %s", hyperlinks ? "on" : "off");
-		return;
-	}
-	if (ParseOnOff(act, &b) == 0 && b != hyperlinks) {
-		SetHyperlinks(b);
-		Activate(-1);
-	}
-}
-
 void DoAction(struct action *act)
 {
 	int nr = act->nr;
@@ -5211,9 +5197,6 @@ void DoAction(struct action *act)
 		break;
 	case RC_DEFHSTATUS:
 		DoCommandDefhstatus(act);
-		break;
-	case RC_HYPERLINKS:
-		DoCommandHyperlinks(act);
 		break;
 	case RC_HSTATUS:
 		DoCommandHstatus(act);
@@ -6318,12 +6301,6 @@ static void ShowDInfo(void)
 	}
 	if (D_hascolor) {
 		strncpy(p, " color", l);
-		w = strlen(p);
-		l -= w;
-		p += w;
-	}
-	if (D_CHL && hyperlinks) {
-		strncpy(p, " hyperlinks", l);
 		w = strlen(p);
 		l -= w;
 		p += w;

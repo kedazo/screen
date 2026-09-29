@@ -362,8 +362,6 @@ void  BracketedPasteMode (bool);
 void  CursorStyle (int);
 void  SetRendition (struct mchar *);
 void  SetRenditionMline (struct mline *, int);
-void  SetLink (uint32_t);
-void  SetHyperlinks (bool);
 void  MakeStatus (char *);
 void  RemoveStatus (void);
 int   ResizeDisplay (int, int);

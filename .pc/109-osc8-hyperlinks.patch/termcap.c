@@ -31,8 +31,6 @@
 #include "termcap.h"
 
 #include <sys/types.h>
-#include <fnmatch.h>
-#include <stdbool.h>
 #include <stdint.h>
 
 /* to get index() declaration on Solaris */
@@ -55,8 +53,6 @@ static int copyarg(char **, char *);
 static int e_tgetent(char *, char *);
 static char *e_tgetstr(char *, char **);
 static int e_tgetflag(char *);
-static int e_tgetflag_extra(char *);
-static bool HyperlinkTerm(const char *);
 static int e_tgetnum(char *);
 static int findseq_ge(char *, int, unsigned char **);
 static void setseqoff(unsigned char *, int, int);
@@ -192,11 +188,6 @@ int InitTermcap(int width, int height)
 		if (D_CXT)
 			D_BE = 1;
 	}
-	/* OSC 8 hyperlinks: "HL" / "HL@" via termcapinfo, else known terminals */
-	if ((t = e_tgetflag_extra("HL")) >= 0)
-		D_CHL = t;
-	else
-		D_CHL = HyperlinkTerm(D_termname);
 	if (nwin_default.flowflag == nwin_undef.flowflag)
 		nwin_default.flowflag = D_CNF ? FLOW_OFF : D_NX ? FLOW_ON : FLOW_AUTOFLAG;
 	D_CLP |= (!D_AM || D_XV || D_XN);
@@ -1188,32 +1179,6 @@ static int e_tgetflag(char *cap)
 	if ((tep = findcap(cap, &bufp, 2)))
 		return (*tep == '@') ? 0 : 1;
 	return tgetflag(cap) > 0;
-}
-
-/* 1: cap set, 0: cancelled with "cap@", -1: not given via termcap/terminfo commands */
-static int e_tgetflag_extra(char *cap)
-{
-	char buf[2], *bufp;
-	char *tep;
-	bufp = buf;
-	if ((tep = findcap(cap, &bufp, 2)))
-		return (*tep == '@') ? 0 : 1;
-	return -1;
-}
-
-/* terminals known to support OSC 8 hyperlinks (or to ignore them silently) */
-static bool HyperlinkTerm(const char *termname)
-{
-	static const char *const patterns[] = {
-		"xterm*", "*-256color", "*-direct", "foot*", "kitty*", "alacritty*",
-		"wezterm*", "ghostty*", "contour*", "tmux*", "rxvt-unicode*",
-		"mintty*", "iterm*", "vte*", "gnome*", "konsole*", "st-*",
-	};
-
-	for (size_t i = 0; i < ARRAY_SIZE(patterns); i++)
-		if (fnmatch(patterns[i], termname, 0) == 0)
-			return true;
-	return false;
 }
 
 static int e_tgetnum(char *cap)

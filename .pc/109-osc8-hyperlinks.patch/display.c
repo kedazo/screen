@@ -44,7 +44,6 @@
 
 #include "canvas.h"
 #include "encoding.h"
-#include "hyperlink.h"
 #include "mark.h"
 #include "misc.h"
 #include "process.h"
@@ -79,9 +78,6 @@ static void INSERTCHAR(uint32_t);
 static void RAW_PUTCHAR(uint32_t);
 static void SetBackColor(int);
 static void RemoveStatusMinWait(void);
-static void AddStrRaw(const char *);
-static void LinkOff(void);
-static void LinkReset(void);
 
 Display *display, *displays;
 
@@ -334,8 +330,6 @@ void InitTerm(int adapt)
 	AddCStr(D_ME);
 	AddCStr(D_EA);
 	AddCStr(D_CE0);
-	/* no hyperlink is open yet; don't emit anything here, a later
-	 * "hyperlinks off" in the rc file must be able to prevent all OSC 8 */
 	D_rend = mchar_null;
 	D_atyp = 0;
 	if (adapt == 0)
@@ -864,7 +858,6 @@ void ClearArea(int x1, int y1, int xs, int xe, int x2, int y2, int bce, int usel
 		xs = x1;
 	if (xe == -1)
 		xe = x2;
-	LinkOff();		/* erased cells must not become part of a link */
 	if (D_UT)		/* Safe to erase ? */
 		SetRendition(&mchar_null);
 	if (D_BE)
@@ -992,7 +985,6 @@ void ScrollH(int y, int xs, int xe, int n, int bce, struct mline *oml)
 		/* UpdateLine(oml, y, xs, xe); */
 		return;
 	}
-	LinkOff();
 	GotoPos(xs, y);
 	if (D_UT)
 		SetRendition(&mchar_null);
@@ -1062,7 +1054,6 @@ void ScrollV(int xs, int ys, int xe, int ye, int n, int bce)
 
 	if (n == 0)
 		return;
-	LinkOff();
 	if (n >= ye - ys + 1 || -n >= ye - ys + 1) {
 		ClearArea(xs, ys, xs, xe, xe, ye, bce, 0);
 		return;
@@ -1421,8 +1412,6 @@ void SetRendition(struct mchar *mc)
 		SetColor(mc->colorfg, mc->colorbg);
 	if (D_rend.font != mc->font)
 		SetFont(mc->font);
-	if (D_rend.linkid != mc->linkid)
-		SetLink(mc->linkid);
 }
 
 void SetRenditionMline(struct mline *ml, int x)
@@ -1439,79 +1428,6 @@ void SetRenditionMline(struct mline *ml, int x)
 	}
 	if (D_rend.font != ml->font[x])
 		SetFont(ml->font[x]);
-	if (D_rend.linkid != ml->linkid[x])
-		SetLink(ml->linkid[x]);
-}
-
-/*
- * OSC 8 hyperlinks
- *
- * D_rend.linkid is the link currently open on the terminal. It is tracked
- * even for displays that don't get hyperlinks, only the output is skipped.
- * Links are independent of SGR: ME ("\033[m") does not close them.
- */
-
-static bool HyperlinksOn(void)
-{
-	return hyperlinks && D_CHL;
-}
-
-static void EmitLink(uint32_t id)
-{
-	static pid_t pid;
-	const char *uri = hl_uri(id);
-	char buf[48];
-
-	if (uri) {
-		if (!pid)
-			pid = getpid();
-		/* our own id: pieces of a link drawn separately stay one link,
-		 * and links of different windows/sessions never merge */
-		sprintf(buf, "\033]8;id=scr%ld-%lu;", (long)pid, (unsigned long)id);
-		AddStrRaw(buf);
-		AddStrRaw(uri);	/* already UTF-8, see StringChar() */
-	} else
-		AddStrRaw("\033]8;;");
-	AddStrRaw("\033\\");
-}
-
-void SetLink(uint32_t id)
-{
-	if (!display || D_rend.linkid == id)
-		return;
-	if (HyperlinksOn())
-		EmitLink(id);
-	D_rend.linkid = id;
-}
-
-/* close the open link, e.g. before the terminal erases or scrolls cells */
-static void LinkOff(void)
-{
-	if (D_rend.linkid)
-		SetLink(0);
-}
-
-/* the terminal's link state is unknown (fresh or flushed output): close */
-static void LinkReset(void)
-{
-	if (HyperlinksOn())
-		EmitLink(0);
-	D_rend.linkid = 0;
-}
-
-/* runtime switch of the global "hyperlinks" setting */
-void SetHyperlinks(bool on)
-{
-	Display *olddisplay = display;
-
-	if (on == hyperlinks)
-		return;
-	/* close open links while we still may talk OSC 8 */
-	if (!on)
-		for (display = displays; display; display = display->d_next)
-			LinkOff();
-	display = olddisplay;
-	hyperlinks = on;
 }
 
 void MakeStatus(char *msg)
@@ -1990,7 +1906,6 @@ void ClearLine(struct mline *oml, int y, int from, int to, int bce)
 	int x;
 	struct mchar bcechar;
 
-	LinkOff();
 	if (D_UT)		/* Safe to erase ? */
 		SetRendition(&mchar_null);
 	if (D_BE)
@@ -2482,7 +2397,6 @@ void NukePending(void)
 	AddCStr(D_CE0);
 	D_rend = mchar_null;
 	D_atyp = 0;
-	LinkReset();
 	AddCStr(D_DS);
 	D_hstatus = false;
 	AddCStr(D_VE);
@@ -3073,7 +2987,6 @@ void KillBlanker(void)
 	AddCStr(D_CE0);
 	D_rend = mchar_null;
 	D_atyp = 0;
-	LinkReset();
 	D_curvis = 0;
 	D_x = D_y = -1;
 	ChangeScrollRegion(oldtop, oldbot);

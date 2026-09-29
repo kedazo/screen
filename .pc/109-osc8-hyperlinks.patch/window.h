@@ -40,10 +40,6 @@
 #include "screen.h"
 #include "layer.h"
 #include "display.h"
-#include "hyperlink.h"
-
-/* OSC 8 needs room for "8;", the params and a HL_MAX_URI long URI */
-#define MAXOSCSTR	(HL_MAX_URI + 512)
 
 struct NewWindow {
 	int	StartAt;	/* where to start the search for the slot */
@@ -215,9 +211,8 @@ struct Window {
 	bool     w_c1;			/* enable C1 flag */
 	int	 w_decodestate;		/* state of our input decoder */
 	int	 w_mbcs;		/* saved char for multibytes charset */
-	char	 w_string[MAXOSCSTR];	/* only OSC 8 may use more than MAXSTR */
+	char	 w_string[MAXSTR];
 	char	*w_stringp;
-	bool	 w_stringovf;		/* over long OSC string being swallowed */
 	char	*w_tabs;		/* line with tabs */
 	int	 w_bell;		/* bell status of this window */
 	int	 w_flow;		/* flow flags */

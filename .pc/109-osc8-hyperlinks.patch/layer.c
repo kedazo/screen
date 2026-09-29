@@ -56,7 +56,6 @@ static struct mline *mlineoffset(const struct mline *ml, const int offset)
 	mml.font = ml->font + offset;
 	mml.colorbg = ml->colorbg + offset;
 	mml.colorfg = ml->colorfg + offset;
-	mml.linkid = ml->linkid + offset;
 	return &mml;
 }
 

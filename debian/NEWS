@@ -1,3 +1,17 @@
+screen (5.0.2-1+osc8~noble1) noble; urgency=medium
+
+  * OSC 8 hyperlinks (e.g. from "ls --hyperlink=auto") now work inside
+    screen. They are sent to terminals whose name matches a list of known
+    capable terminals (xterm*, *-256color, kitty*, foot*, ...). Use
+    "termcapinfo name HL" / "termcapinfo name HL@" in ~/.screenrc to enable
+    or disable them per terminal, or "hyperlinks off" to turn them off.
+  * Sessions started by screen 4.x keep running after the upgrade and can
+    be reattached with "screen -r", but "screen -X" / "screen -Q" against
+    them may misbehave; keep a 4.x binary around for those or restart the
+    sessions.
+
+ -- David Kedves <kedz@kedz.eu>  Tue, 29 Sep 2026 16:02:36 +0200
+
 screen (5.0.1-3) unstable; urgency=medium
 
   * Screen now sets TERM=screen5 by default in /etc/screenrc.

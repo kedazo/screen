@@ -59,8 +59,7 @@ static struct mline mline_zero = {
 	.attr    = NULL,
 	.font    = NULL,
 	.colorbg = NULL,
-	.colorfg = NULL,
-	.linkid  = NULL
+	.colorfg = NULL
 };
 
 /*
@@ -315,8 +314,6 @@ static void FreeMline(struct mline *ml)
 		free(ml->colorbg);
 	if (ml->colorfg && ml->colorfg != null)
 		free(ml->colorfg);
-	if (ml->linkid && ml->linkid != null)
-		free(ml->linkid);
 	*ml = mline_zero;
 }
 
@@ -327,7 +324,6 @@ static int AllocMline(struct mline *ml, int w)
 	ml->font = null;
 	ml->colorbg = null;
 	ml->colorfg = null;
-	ml->linkid = null;
 	if (ml->image == NULL)
 		return -1;
 	return 0;
@@ -362,12 +358,6 @@ static int BcopyMline(struct mline *mlf, int xf, struct mline *mlt, int xt, int 
 	}
 	if (mlt->colorfg != null)
 		memmove(mlt->colorfg + xt, mlf->colorfg + xf, l * 4);
-	if (mlf->linkid != null && mlt->linkid == null) {
-		if ((mlt->linkid = calloc(w, 4)) == NULL)
-			mlt->linkid = null, r = -1;
-	}
-	if (mlt->linkid != null)
-		memmove(mlt->linkid + xt, mlf->linkid + xf, l * 4);
 	return r;
 }
 
@@ -393,8 +383,7 @@ static void CheckMaxSize(int wi)
 	mline_old.font = xrealloc(mline_old.font, maxwidth * 4);
 	mline_old.colorbg = xrealloc(mline_old.colorbg, maxwidth * 4);
 	mline_old.colorfg = xrealloc(mline_old.colorfg, maxwidth * 4);
-	mline_old.linkid = xrealloc(mline_old.linkid, maxwidth * 4);
-	if (!(blank && null && mline_old.image && mline_old.attr && mline_old.font && mline_old.colorbg && mline_old.colorfg && mline_old.linkid))
+	if (!(blank && null && mline_old.image && mline_old.attr && mline_old.font && mline_old.colorbg && mline_old.colorfg))
 		Panic(0, "%s", strnomem);
 
 	MakeBlankLine(blank, maxwidth);
@@ -410,8 +399,6 @@ static void CheckMaxSize(int wi)
 	mline_null.colorbg = null;
 	mline_blank.colorfg = null;
 	mline_null.colorfg = null;
-	mline_blank.linkid = null;
-	mline_null.linkid = null;
 
 #define RESET_AFC(x, bl)	\
 do {				\
@@ -428,7 +415,6 @@ do {						\
 		RESET_AFC(ml->font, null);	\
 		RESET_AFC(ml->colorbg, null);	\
 		RESET_AFC(ml->colorfg, null);	\
-		RESET_AFC(ml->linkid, null);	\
 	}					\
 } while (0)
 

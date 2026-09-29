@@ -142,7 +142,6 @@ int       rflag;
 int       dflag;
 int       queryflag = -1;
 bool      hastruecolor = false;
-bool      hyperlinks = true;	/* forward OSC 8 hyperlinks to capable displays */
 
 char     *multi;
 int       multiattach;

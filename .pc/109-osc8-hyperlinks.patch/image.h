@@ -40,7 +40,6 @@ struct mchar {
 	uint32_t colorbg;	/* background color */
 	uint32_t colorfg;	/* foreground color */
 	uint32_t mbcs;		/* used for multi byte character sets; TODO: possible to remove? use image now that it has 32 bits*/
-	uint32_t linkid;	/* OSC 8 hyperlink id (see hyperlink.h), 0 = none */
 };
 
 struct mline {
@@ -49,7 +48,6 @@ struct mline {
 	uint32_t *font;
 	uint32_t *colorbg;
 	uint32_t *colorfg;
-	uint32_t *linkid;
 };
 
 
@@ -60,7 +58,6 @@ struct mline {
 	memmove(mline_old.font,    (ml)->font,    (n) * 4);	\
 	memmove(mline_old.colorbg, (ml)->colorbg, (n) * 4);	\
 	memmove(mline_old.colorfg, (ml)->colorfg, (n) * 4);	\
-	memmove(mline_old.linkid,  (ml)->linkid,  (n) * 4);	\
 }
 
 #define copy_mline(ml, xf, xt, n) {					\
@@ -69,7 +66,6 @@ struct mline {
 	memmove((ml)->font    + (xt), (ml)->font    + (xf), (n) * 4);	\
 	memmove((ml)->colorbg + (xt), (ml)->colorbg + (xf), (n) * 4);	\
 	memmove((ml)->colorfg + (xt), (ml)->colorfg + (xf), (n) * 4);	\
-	memmove((ml)->linkid  + (xt), (ml)->linkid  + (xf), (n) * 4);	\
 }
 
 #define clear_mline(ml, x, n) {							\
@@ -78,7 +74,6 @@ struct mline {
 	if ((ml)->font    != null) memset((ml)->font    + (x), 0, (n) * 4);	\
 	if ((ml)->colorbg != null) memset((ml)->colorbg + (x), 0, (n) * 4);	\
 	if ((ml)->colorfg != null) memset((ml)->colorfg + (x), 0, (n) * 4);	\
-	if ((ml)->linkid  != null) memset((ml)->linkid  + (x), 0, (n) * 4);	\
 }
 
 #define cmp_mline(ml1, ml2, x) (			\
@@ -87,7 +82,6 @@ struct mline {
 	&& (ml1)->font[x]    == (ml2)->font[x]		\
 	&& (ml1)->colorbg[x] == (ml2)->colorbg[x]	\
 	&& (ml1)->colorfg[x] == (ml2)->colorfg[x]	\
-	&& (ml1)->linkid[x]  == (ml2)->linkid[x]	\
 )
 
 #define cmp_mchar(mc1, mc2) (				\
@@ -96,7 +90,6 @@ struct mline {
 	&& (mc1)->font    == (mc2)->font		\
 	&& (mc1)->colorbg == (mc2)->colorbg		\
 	&& (mc1)->colorfg == (mc2)->colorfg		\
-	&& (mc1)->linkid  == (mc2)->linkid		\
 )
 
 #define cmp_mchar_mline(mc, ml, x) (			\
@@ -105,7 +98,6 @@ struct mline {
 	&& (mc)->font    == (ml)->font[x]		\
 	&& (mc)->colorbg == (ml)->colorbg[x]		\
 	&& (mc)->colorfg == (ml)->colorfg[x]		\
-	&& (mc)->linkid  == (ml)->linkid[x]		\
 )
 
 #define copy_mchar2mline(mc, ml, x) {			\
@@ -114,7 +106,6 @@ struct mline {
 	(ml)->font[x]    = (mc)->font;			\
 	(ml)->colorbg[x] = (mc)->colorbg;		\
 	(ml)->colorfg[x] = (mc)->colorfg;		\
-	(ml)->linkid[x]  = (mc)->linkid;		\
 }
 
 #define copy_mline2mchar(mc, ml, x) {			\
@@ -123,7 +114,6 @@ struct mline {
 	(mc)->font    = (ml)->font[x];			\
 	(mc)->colorbg = (ml)->colorbg[x];		\
 	(mc)->colorfg = (ml)->colorfg[x];		\
-	(mc)->linkid  = (ml)->linkid[x];		\
 	(mc)->mbcs    = 0;				\
 }
 

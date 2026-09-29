@@ -39,7 +39,6 @@
 #include "encoding.h"
 #include "fileio.h"
 #include "help.h"
-#include "hyperlink.h"
 #include "logfile.h"
 #include "mark.h"
 #include "misc.h"
@@ -65,8 +64,8 @@ struct mline mline_blank;
 struct mline mline_null;
 
 struct mchar mchar_null;
-struct mchar mchar_blank = { ' ', 0, 0, 0, 0, 0, 0 };
-struct mchar mchar_so = { ' ', A_RV, 0, 0, 0, 0, 0};
+struct mchar mchar_blank = { ' ', 0, 0, 0, 0, 0 };
+struct mchar mchar_so = { ' ', A_RV, 0, 0, 0, 0};
 
 uint64_t renditions[NUM_RENDS] = { 65529 /* =ub */ , 65531 /* =b */ , 65533 /* =u */  };
 
@@ -1206,40 +1205,11 @@ static void StringStart(Window *win, enum string_t type)
 {
 	win->w_StringType = type;
 	win->w_stringp = win->w_string;
-	win->w_stringovf = false;
 	win->w_state = ASTR;
-}
-
-/*
- * The string buffer is full: OSC strings (e.g. OSC 8 hyperlinks with long
- * URIs) are swallowed up to their terminator and then dropped by
- * StringEnd(), instead of spilling the rest onto the screen. Other string
- * types keep the traditional behaviour of falling back to literal mode.
- */
-static void StringOverflow(Window *win)
-{
-	if (win->w_StringType == OSC)
-		win->w_stringovf = true;
-	else
-		win->w_state = LIT;
-}
-
-/* only OSC 8 hyperlinks (long URIs) may use the whole, larger buffer */
-static size_t StringLimit(Window *win)
-{
-	if (win->w_StringType == OSC && win->w_stringp - win->w_string >= 2
-	    && win->w_string[0] == '8' && win->w_string[1] == ';')
-		return sizeof(win->w_string);
-	return MAXSTR;
 }
 
 static void StringChar(Window *win, int c)
 {
-	char *end = win->w_string + StringLimit(win) - 1;
-
-	if (win->w_stringovf)
-		return;
-
 	/*
 	 * WriteString() decodes UTF-8 input to Unicode code points.
 	 * String buffers are byte-oriented, so non-ASCII characters must be
@@ -1249,8 +1219,8 @@ static void StringChar(Window *win, int c)
 		char utf8[7];
 		int n = ToUtf8(utf8, c);
 
-		if (win->w_stringp + n > end)
-			StringOverflow(win);
+		if (win->w_stringp + n > win->w_string + MAXSTR - 1)
+			win->w_state = LIT;
 		else {
 			memcpy(win->w_stringp, utf8, n);
 			win->w_stringp += n;
@@ -1258,57 +1228,10 @@ static void StringChar(Window *win, int c)
 		return;
 	}
 
-	if (win->w_stringp >= end)
-		StringOverflow(win);
+	if (win->w_stringp >= win->w_string + MAXSTR - 1)
+		win->w_state = LIT;
 	else
 		*(win->w_stringp)++ = c;
-}
-
-/*****************************************************************/
-/* OSC 8 hyperlinks */
-
-static void MarkLinkLines(struct mline *ml, int n, int w)
-{
-	for (; n > 0; n--, ml++) {
-		if (ml->linkid == NULL || ml->linkid == null)
-			continue;
-		for (int x = 0; x < w; x++)
-			if (ml->linkid[x])
-				hl_mark(ml->linkid[x]);
-	}
-}
-
-/* free the links no window and no display refers to anymore */
-static void HyperlinkGC(void)
-{
-	hl_gc_begin();
-	for (Window *w = mru_window; w; w = w->w_prev_mru) {
-		MarkLinkLines(w->w_mlines, w->w_height, w->w_width + 1);
-		MarkLinkLines(w->w_hlines, w->w_histheight, w->w_width + 1);
-		MarkLinkLines(w->w_alt.mlines, w->w_alt.height, w->w_alt.width + 1);
-		MarkLinkLines(w->w_alt.hlines, w->w_alt.histheight, w->w_alt.width + 1);
-		hl_mark(w->w_rend.linkid);	/* saved cursors never hold links */
-	}
-	for (Display *d = displays; d; d = d->d_next) {
-		hl_mark(d->d_rend.linkid);
-		hl_mark(d->d_lpchar.linkid);
-	}
-	hl_gc_end();
-}
-
-/* OSC 8 ; params ; URI: open (or with an empty URI close) a hyperlink */
-static void HyperlinkOSC(Window *win, char *payload)
-{
-	char *app_id, *uri;
-	uint32_t id = 0;
-
-	/* a malformed or rejected link must not extend a previous one */
-	if (hl_parse(payload, &app_id, &uri) == 0 && *uri) {
-		if (hl_gc_wanted())
-			HyperlinkGC();
-		id = hl_intern(app_id, uri);
-	}
-	win->w_rend.linkid = id;
 }
 
 /*
@@ -1328,21 +1251,12 @@ static int StringEnd(Window *win)
 
 	win->w_state = LIT;
 	*win->w_stringp = '\0';
-	if (win->w_stringovf) {
-		/* over long OSC string, see StringOverflow() */
-		win->w_stringovf = false;
-		return 0;
-	}
 	switch (win->w_StringType) {
 	case OSC:		/* special xterm compatibility hack */
 		if (win->w_string[0] == ';' || (p = strchr(win->w_string, ';')) == NULL)
 			break;
 		typ = atoi(win->w_string);
 		p++;
-		if (typ == 8) {
-			HyperlinkOSC(win, p);
-			break;
-		}
 		if (typ == 83) {	/* 83 = 'S' */
 			/* special execute commands sequence */
 			char *args[MAXARGS];
@@ -1419,8 +1333,7 @@ static int StringEnd(Window *win)
 		}
 		return -1;
 	case DCS:
-		/* raw passthrough, don't let it land inside an open hyperlink */
-		LAY_DISPLAYS(&win->w_layer, (SetLink(0), AddStr(win->w_string)));
+		LAY_DISPLAYS(&win->w_layer, AddStr(win->w_string));
 		break;
 	case AKA:
 		if (win->w_title == win->w_akabuf && !*win->w_string)
@@ -1555,7 +1468,6 @@ static void SaveCursor(Window *win, struct cursor *cursor)
 	cursor->x = win->w_x;
 	cursor->y = win->w_y;
 	cursor->Rend = win->w_rend;
-	cursor->Rend.linkid = 0;	/* see RestoreCursor() */
 	cursor->Charset = win->w_Charset;
 	cursor->CharsetR = win->w_CharsetR;
 	memmove((char *)cursor->Charsets, (char *)win->w_charsets, 4 * sizeof(int));
@@ -1568,10 +1480,7 @@ static void RestoreCursor(Window *win, struct cursor *cursor)
 	LGotoPos(&win->w_layer, cursor->x, cursor->y);
 	win->w_x = cursor->x;
 	win->w_y = cursor->y;
-	/* like xterm/VTE: an open hyperlink is not part of the saved state */
-	uint32_t linkid = win->w_rend.linkid;
 	win->w_rend = cursor->Rend;
-	win->w_rend.linkid = linkid;
 	memmove((char *)win->w_charsets, (char *)cursor->Charsets, 4 * sizeof(int));
 	win->w_Charset = cursor->Charset;
 	win->w_CharsetR = cursor->CharsetR;
@@ -2048,13 +1957,6 @@ static void MFixLine(Window *win, int y, struct mchar *mc)
 			WMsg(win, 0, "Warning: no space for color foreground - turned off");
 		}
 	}
-	if (mc->linkid && ml->linkid == null) {
-		if ((ml->linkid = calloc(win->w_width + 1, 4)) == NULL) {
-			ml->linkid = null;
-			mc->linkid = win->w_rend.linkid = 0;
-			WMsg(win, 0, "Warning: no space for hyperlink - turned off");
-		}
-	}
 }
 
 /*****************************************************************/
@@ -2144,9 +2046,6 @@ static void MScrollV(Window *win, int n, int ys, int ye, int bce)
 			if (ml->colorfg != null)
 				free(ml->colorfg);
 			ml->colorfg = null;
-			if (ml->linkid != null)
-				free(ml->linkid);
-			ml->linkid = null;
 			memmove(ml->image, blank, (win->w_width + 1) * 4);
 			if (bce)
 				MBceLine(win, i, 0, win->w_width, bce);
@@ -2180,9 +2079,6 @@ static void MScrollV(Window *win, int n, int ys, int ye, int bce)
 			if (ml->colorfg != null)
 				free(ml->colorfg);
 			ml->colorfg = null;
-			if (ml->linkid != null)
-				free(ml->linkid);
-			ml->linkid = null;
 			memmove(ml->image, blank, (win->w_width + 1) * 4);
 			if (bce)
 				MBceLine(win, i, 0, win->w_width, bce);
@@ -2365,12 +2261,6 @@ static void WAddLineToHist(Window *win, struct mline *ml)
 	ml->colorfg = null;
 	if (o != null)
 		free(o);
-	q = ml->linkid;
-	o = hml->linkid;
-	hml->linkid = q;
-	ml->linkid = null;
-	if (o != null)
-		free(o);
 
 	if (++win->w_histidx >= win->w_histheight)
 		win->w_histidx = 0;
@@ -2391,8 +2281,6 @@ int MFindUsedLine(Window *win, int ye, int ys)
 		if (ml->colorbg != null && memcmp(ml->colorbg, null, win->w_width * 4))
 			break;
 		if (ml->colorfg != null && memcmp(ml->colorfg, null, win->w_width * 4))
-			break;
-		if (ml->linkid != null && memcmp(ml->linkid, null, win->w_width * 4))
 			break;
 		if (win->w_encoding == UTF8) {
 			if (ml->font != null && memcmp(ml->font, null, win->w_width))

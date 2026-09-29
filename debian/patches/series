@@ -19,3 +19,4 @@
 106-avoid-utf8-double-encoding-in-xterm-osc-forwarding.patch
 107-force-absolute-cursor-restore-after-hardstatus-redraw.patch
 108-drop-deflogin-login-from-docs.patch
+109-osc8-hyperlinks.patch

@@ -2406,17 +2406,6 @@ scrollback buffer).
 Change the window's hardstatus line to the string \fIstatus\fP.
 .RE
 .TP
-.BR "hyperlinks " [ on | off ]
-.RS 0
-.PP
-Enables or disables forwarding of OSC 8 hyperlinks (as printed e.g. by
-\*Qls \-\-hyperlink\*U) to the terminal. Hyperlinks are stored with the text,
-so they survive redraws, window switches, split regions, copy mode and
-reattaching. They are only sent to terminals that support them, see the
-\fBHL\fP capability. Without an argument the current setting is displayed.
-Default is `on'.
-.RE
-.TP
 .IR "\fBidle\fR " [ timeout [ "cmd-args" ]]
 .RS 0
 .PP
@@ -5077,13 +5066,6 @@ Terminal needs bold to display high-intensity colors (e.g. Eterm).
 .TP 13
 .BI TF "	(bool)"
 Add missing capabilities to the termcap/info entry. (Set by default).
-.TP 13
-.BI HL "	(bool)"
-Terminal supports OSC 8 hyperlinks. Set by default for terminals whose name
-matches xterm*, *\-256color, *\-direct, foot*, kitty*, alacritty*, wezterm*,
-ghostty*, contour*, tmux*, rxvt\-unicode*, mintty*, iterm*, vte*, gnome*,
-konsole* or st\-*. Use \*Qtermcapinfo name HL\*U to enable or
-\*Qtermcapinfo name HL@\*U to disable hyperlinks for a terminal.
 
 .SH CHARACTER TRANSLATION
 \fIScreen\fP has a powerful mechanism to translate characters to arbitrary

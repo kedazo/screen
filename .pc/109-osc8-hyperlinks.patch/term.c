@@ -168,7 +168,6 @@ struct term term[T_N] =
   { "VN", T_STR  },
   { "TF", T_FLG  },
   { "XT", T_FLG  },
-  { "HL", T_FLG  },
 
 /* d_font setting */
   { "G0", T_FLG  },

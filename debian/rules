@@ -31,6 +31,10 @@ SCREEN_CONFIGURE=--enable-socket-dir=/run/screen \
 
 override_dh_auto_clean:
 	rm -rf build build-udeb
+	# The udeb is always installed below, but with the noudeb build profile
+	# (set by default on Ubuntu) dh_clean does not remove its staging dir;
+	# leftovers break the next build's install step.
+	rm -rf $(ROOT_UDEB)
 
 override_dh_auto_configure:
 	dh_auto_configure -B build -- $(SCREEN_CONFIGURE) --enable-pam

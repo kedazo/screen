@@ -1348,10 +1348,6 @@ Find previous command beginning @dots{}.
 Change the window's hardstatus line.
 @xref{Hardstatus}.
 
-@item hyperlinks [@var{state}]
-Forward OSC 8 hyperlinks to the terminal.
-@xref{Special Capabilities}.
-
 @item idle [@var{timeout} [@var{cmd} @var{args}]]
 Define a screen saver command.
 @xref{Screen Saver}.
@@ -5286,25 +5282,7 @@ Terminal needs bold to display high-intensity colors (e.g. Eterm).
 @item TF
 (bool)@*
 Add missing capabilities to the termcap/info entry. (Set by default).
-
-@item HL
-(bool)@*
-Terminal supports OSC 8 hyperlinks. Set by default for terminals whose
-name matches xterm*, *-256color, *-direct, foot*, kitty*, alacritty*,
-wezterm*, ghostty*, contour*, tmux*, rxvt-unicode*, mintty*, iterm*, vte*,
-gnome*, konsole* or st-*. Use @samp{termcapinfo name HL} to enable or
-@samp{termcapinfo name HL@@} to disable hyperlinks for a terminal.
 @end table
-
-@deffn Command hyperlinks [@code{on|off}]
-(none)@*
-Enables or disables forwarding of OSC 8 hyperlinks (as printed e.g. by
-@samp{ls --hyperlink}) to the terminal. Hyperlinks are stored with the
-text, so they survive redraws, window switches, split regions, copy mode
-and reattaching. They are only sent to terminals with the @code{HL}
-capability. Without an argument the current setting is displayed.
-Default is @samp{on}.
-@end deffn
 
 @node Autonuke
 @section Autonuke
