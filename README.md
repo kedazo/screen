@@ -21,6 +21,9 @@ screen. With this patch they are clickable inside screen too:
   can't inject escape sequences into your terminal
 - over-long OSC strings no longer spill garbage onto the screen
 
+Sessions started by screen 4.x can still be reattached with `screen -r`,
+but `screen -X` / `-Q` against them needs the old 4.x binary.
+
 ## Configuration
 
 On by default for terminals whose `$TERM` matches `xterm*`,
@@ -45,7 +48,15 @@ dpkg-buildpackage -rfakeroot -b     # binary .deb
 dpkg-buildpackage -rfakeroot -S -sa # source package (e.g. for a PPA)
 ```
 
-Sessions started by screen 4.x can still be reattached with `screen -r`,
-but `screen -X` / `-Q` against them needs the old 4.x binary.
+## PPA
+
+Ubuntu builds (only for 24.04LTS for now) are available in my hacking PPA:
+https://launchpad.net/~kedazo/+archive/ubuntu/ubuntu-hacking
+
+```sh
+sudo add-apt-repository ppa:kedazo/ubuntu-hacking
+sudo apt update
+sudo apt install screen
+```
 
 License: GPL-3.0-or-later, same as GNU screen.
