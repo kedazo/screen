@@ -1,1 +1,2 @@
 extend-diff-ignore=config\.h\.in
+extend-diff-ignore=^README\.md$
