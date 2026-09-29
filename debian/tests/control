@@ -1,0 +1,5 @@
+Test-Command: prove -v debian/tests/t
+Depends:
+ perl,
+ python3-minimal,
+ @,

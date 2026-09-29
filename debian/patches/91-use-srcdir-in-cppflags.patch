@@ -1,0 +1,27 @@
+From: Peter Dey <debian@realmtech.net>
+Date: Wed, 5 Aug 2026 16:06:32 +0200
+Subject: Include $(srcdir) in CPPFLAGS so out-of-tree builds succeed
+
+Forwarded: https://savannah.gnu.org/bugs/index.php?68508
+Last-Update: 2026-02-08
+Comment: The generated Makefile for the kmap helpers ignores $(srcdir)
+ in $(CPPFLAGS), so out-of-tree builds fail to find headers such as
+ kmapdef.h.  Include $(srcdir) explicitly so we no longer need to set
+ a global -I.. from debian/rules.
+---
+ Makefile.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile.in b/Makefile.in
+index b64a288..8fc308e 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -33,7 +33,7 @@ SCREENENCODINGS = $(datadir)/screen/utf8encodings
+ 
+ CC = @CC@
+ CFLAGS = @CFLAGS@ -Wall -Wextra -std=c17
+-CPPFLAGS = @CPPFLAGS@ -iquote. -DSCREENENCODINGS='"$(SCREENENCODINGS)"' -DBUILD_DATE='"$(BUILD_DATE)"'
++CPPFLAGS = @CPPFLAGS@ -I$(srcdir) -iquote. -DSCREENENCODINGS='"$(SCREENENCODINGS)"' -DBUILD_DATE='"$(BUILD_DATE)"'
+ LDFLAGS = @LDFLAGS@
+ LIBS = @LIBS@
+ 

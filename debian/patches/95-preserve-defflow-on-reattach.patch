@@ -1,0 +1,21 @@
+From: David Fifield <david@bamsoftware.com>
+Date: Wed, 5 Aug 2026 16:06:33 +0200
+Subject: Restore the value of defflow after (re-)attachment.
+
+---
+ termcap.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/termcap.c b/termcap.c
+index 8bcbab6..e971180 100644
+--- a/termcap.c
++++ b/termcap.c
+@@ -188,7 +188,7 @@ int InitTermcap(int width, int height)
+ 		if (D_CXT)
+ 			D_BE = 1;
+ 	}
+-	if (nwin_options.flowflag == nwin_undef.flowflag)
++	if (nwin_default.flowflag == nwin_undef.flowflag)
+ 		nwin_default.flowflag = D_CNF ? FLOW_OFF : D_NX ? FLOW_ON : FLOW_AUTOFLAG;
+ 	D_CLP |= (!D_AM || D_XV || D_XN);
+ 	if (!D_BL)

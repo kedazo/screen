@@ -1,0 +1,46 @@
+From: Peter Dey <debian@realmtech.net>
+Date: Wed, 5 Aug 2026 23:21:17 +0200
+Subject: Fix UTF-8 caption corruption for non-ASCII characters
+Author: Peter Dey <debian@realmtech.net>
+Bug-Debian: https://bugs.debian.org/215955
+Forwarded: https://savannah.gnu.org/bugs/?18505
+Last-Update: 2026-08-05
+
+---
+ ansi.c | 19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
+
+diff --git a/ansi.c b/ansi.c
+index 522bbf9..4da4d49 100644
+--- a/ansi.c
++++ b/ansi.c
+@@ -1210,6 +1210,24 @@ static void StringStart(Window *win, enum string_t type)
+ 
+ static void StringChar(Window *win, int c)
+ {
++	/*
++	 * WriteString() decodes UTF-8 input to Unicode code points.
++	 * String buffers are byte-oriented, so non-ASCII characters must be
++	 * encoded back to UTF-8 before appending.
++	 */
++	if (win->w_encoding == UTF8 && (c & ~0x7f)) {
++		char utf8[7];
++		int n = ToUtf8(utf8, c);
++
++		if (win->w_stringp + n > win->w_string + MAXSTR - 1)
++			win->w_state = LIT;
++		else {
++			memcpy(win->w_stringp, utf8, n);
++			win->w_stringp += n;
++		}
++		return;
++	}
++
+ 	if (win->w_stringp >= win->w_string + MAXSTR - 1)
+ 		win->w_state = LIT;
+ 	else
+@@ -2370,4 +2388,3 @@ static void WChangeSize(Window *win, int w, int h)
+ 			Redisplay(0);
+ 	}
+ }
+-

@@ -1,0 +1,45 @@
+From: Peter Dey <debian@realmtech.net>
+Date: Sat, 8 Aug 2026 16:39:56 +0200
+Subject: Force absolute cursor restore after hardstatus redraw
+Description: Relative cursor accounting can desync when the hardstatus
+ has non-ASCII characters, leaving the prompt/cursor on the wrong
+ line. Switch to an absolute cursor restore.
+Author: Peter Dey <debian@realmtech.net>
+Bug-Debian: https://bugs.debian.org/1145436
+Forwarded: https://savannah.gnu.org/bugs/?68643
+Last-Update: 2026-08-08
+
+---
+display.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/display.c b/display.c
+index b4ed496..4eda3c3 100644
+--- a/display.c
++++ b/display.c
+@@ -1669,8 +1669,11 @@ void ShowHStatus(char *str)
+ 				PUTCHARLP(' ');
+ 		if (l < D_width)
+ 			ClearArea(l, D_height - 1, l, D_width - 1, D_width - 1, D_height - 1, 0, 0);
+-		if (ox != -1 && oy != -1)
++		if (ox != -1 && oy != -1) {
++			/* Force absolute restore; status redraw can desync relative cursor math. */
++			D_x = D_y = -1;
+ 			GotoPos(ox, oy);
++		}
+ 		D_hstatus = (str != NULL);
+ 		SetRendition(&mchar_null);
+ 	} else if (D_has_hstatus == HSTATUS_FIRSTLINE) {
+@@ -1688,8 +1691,11 @@ void ShowHStatus(char *str)
+ 				PUTCHARLP(' ');
+ 		if (l < D_width)
+ 			ClearArea(l, 0, l, D_width - 1, D_width - 1, 0, 0, 0);
+-		if (ox != -1 && oy != -1)
++		if (ox != -1 && oy != -1) {
++			/* Force absolute restore; status redraw can desync relative cursor math. */
++			D_x = D_y = -1;
+ 			GotoPos(ox, oy);
++		}
+ 		D_hstatus = (str != NULL);
+ 		SetRendition(&mchar_null);
+ 	} else if (str && *str && D_has_hstatus == HSTATUS_MESSAGE) {

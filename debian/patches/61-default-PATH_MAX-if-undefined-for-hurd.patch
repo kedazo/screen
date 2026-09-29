@@ -1,0 +1,32 @@
+From: Axel Beckert <abe@debian.org>
+Date: Wed, 5 Aug 2026 16:06:32 +0200
+Subject: Define PATH_MAX and MAXPATHLEN if undefined
+
+Bug: https://savannah.gnu.org/bugs/?50089
+Forwarded: no
+Last-Update: 2026-05-19
+
+Fixes FTBFS on GNU/Hurd because PATH_MAX and MAXPATHLEN are missing.
+---
+ os.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/os.h b/os.h
+index b9dec9b..c4399ae 100644
+--- a/os.h
++++ b/os.h
+@@ -36,6 +36,14 @@
+ 
+ #include <limits.h>
+ 
++#ifndef PATH_MAX
++# define PATH_MAX 4096
++#endif
++
++#ifndef MAXPATHLEN
++# define MAXPATHLEN PATH_MAX
++#endif
++
+ #include <unistd.h>
+ #include <stdlib.h>
+ #include <string.h>

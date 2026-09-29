@@ -1,0 +1,100 @@
+From: Peter Dey <debian@realmtech.net>
+Date: Wed, 5 Aug 2026 23:38:25 +0200
+Subject: Fail OpenTTY on unapplied serial baud rates
+Bug-Debian: https://bugs.debian.org/860922
+Forwarded: https://savannah.gnu.org/bugs/?50849
+Author: Peter Dey <debian@realmtech.net>
+Last-Update: 2026-08-06
+Description: Error out when speed request is not actually applied
+ Some tty drivers can silently keep a different speed than requested.
+ Verify the applied speed after SetTTY and fail OpenTTY on mismatch.
+
+---
+ tty.c | 60 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 60 insertions(+)
+
+diff --git a/tty.c b/tty.c
+index 3e0f922..83045ad 100644
+--- a/tty.c
++++ b/tty.c
+@@ -55,6 +55,8 @@
+ 
+ static void consredir_readev_fn(Event *, void *);
+ static struct baud_values *lookup_baud (int);
++static int GetRequestedBaud (char *);
++static int VerifyTTYBaud (int, char *, int);
+ 
+ bool separate_sids = true;
+ 
+@@ -146,6 +148,12 @@ int OpenTTY(char *line, char *opt)
+ 		return -1;
+ 	}
+ 	SetTTY(f, &Mode);
++	if (VerifyTTYBaud(f, line, GetRequestedBaud(opt)) < 0) {
++		alarm(0);
++		xsignal(SIGALRM, sigalrm);
++		close(f);
++		return -1;
++	}
+ 
+ #if defined(TIOCMSET)
+ 	{
+@@ -1220,6 +1228,58 @@ static int SetBaud(struct mode *m, int ibaud, int obaud)
+ 	return 0;
+ }
+ 
++static int GetRequestedBaud(char *opt)
++{
++	static const char sep[] = " \t:;,";
++	int baud = -1;
++
++	if (!opt)
++		return -1;
++
++	while (*opt) {
++		while (strchr(sep, *opt))
++			opt++;
++		if (!*opt)
++			break;
++		if (*opt >= '0' && *opt <= '9')
++			baud = atoi(opt);
++		while (*opt && !strchr(sep, *opt))
++			opt++;
++	}
++
++	return baud;
++}
++
++static int VerifyTTYBaud(int fd, char *line, int baud)
++{
++	struct baud_values *want, *have_i, *have_o;
++	struct termios tio;
++	speed_t ispeed, ospeed;
++
++	if (baud < 0 || baud == 0)
++		return 0;
++
++	want = lookup_baud(baud);
++	if (!want)
++		return -1;
++
++	if (tcgetattr(fd, &tio) < 0) {
++		Msg(errno, "%s: tcgetattr failed while checking baud rate", line);
++		return -1;
++	}
++
++	ispeed = cfgetispeed(&tio);
++	ospeed = cfgetospeed(&tio);
++	if (ispeed == want->sym && ospeed == want->sym)
++		return 0;
++
++	have_i = lookup_baud((int)ispeed);
++	have_o = lookup_baud((int)ospeed);
++	Msg(0, "%s: requested baud rate %d but got %d/%d",
++	    line, want->bps, have_i ? have_i->bps : -1, have_o ? have_o->bps : -1);
++	return -1;
++}
++
+ int CheckTtyname(char *tty)
+ {
+ 	struct stat st;

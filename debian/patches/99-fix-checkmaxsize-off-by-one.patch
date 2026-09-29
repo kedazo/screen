@@ -1,0 +1,24 @@
+From: =?utf-8?q?Bernhard_=C3=9Cbelacker?= <bernhardu@mailbox.org>
+Date: Wed, 5 Aug 2026 16:06:33 +0200
+Subject: Fix off-by-one in resize CheckMaxSize guard
+
+Bug-Debian: https://bugs.debian.org/1117241
+Forwarded: https://savannah.gnu.org/bugs/?68360
+Last-Update: 2026-05-18
+---
+ resize.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/resize.c b/resize.c
+index 99218ba..895b96a 100644
+--- a/resize.c
++++ b/resize.c
+@@ -373,7 +373,7 @@ static void CheckMaxSize(int wi)
+ 
+ 	if (wi > MAXWIDTH)
+ 		wi = MAXWIDTH;
+-	if (wi <= maxwidth)
++	if (wi < maxwidth)
+ 		return;
+ 	maxwidth = wi + 1;
+ 	blank = xrealloc(blank, maxwidth * 4);

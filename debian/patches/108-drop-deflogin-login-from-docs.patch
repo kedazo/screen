@@ -1,0 +1,218 @@
+From: Peter Dey <debian@realmtech.net>
+Date: Mon, 24 Aug 2026 20:30:35 +0200
+Subject: Drop deflogin/login from documentation and example screenrc
+Description: Debian builds screen with --disable-utmp.  deflogin and login are therefore unavailable.
+Author: Peter Dey <debian@realmtech.net>
+Bug-Debian: https://bugs.debian.org/1144637
+Forwarded: no
+Last-Update: 2026-08-24
+
+---
+ doc/screen.1       | 35 +++--------------------------------
+ doc/screen.texinfo | 42 +++---------------------------------------
+ etc/etcscreenrc    |  4 ----
+ etc/screenrc       |  2 --
+ 4 files changed, 6 insertions(+), 77 deletions(-)
+
+diff --git a/doc/screen.1 b/doc/screen.1
+index c73c904..3270bb7 100644
+--- a/doc/screen.1
++++ b/doc/screen.1
+@@ -233,7 +233,9 @@ The use of this option is discouraged.
+ .TP 5
+ .BR \-l " and " \-ln
+ turns login mode on or off (for /run/utmp updating).
+-This can also be defined through the \*Qdeflogin\*U .screenrc command.
++This option is available only if
++.I screen
++was built with utmp support.
+ .TP 5
+ .BR \-ls " [" \fImatch ]
+ .PD 0
+@@ -576,12 +578,6 @@ T};(redisplay);T{
+ Fully refresh current window.
+ T}
+ _
+-C-a L;(login);T{
+-Toggle this windows login slot. Available only if
+-.I screen
+-is configured to update the utmp database.
+-T}
+-_
+ T{
+ C-a m,
+ .br
+@@ -1788,13 +1784,6 @@ Same as the \fBlog\fP command except that the default setting for new windows
+ is changed. Initial setting is `off'.
+ .RE
+ .TP
+-.BR "deflogin [ on | off ]"
+-.RS 0
+-.PP
+-Same as the \fBlogin\fP command except that the default setting for new windows 
+-is changed. This is initialized with `on' as distributed (see config.h.in).
+-.RE
+-.TP
+ .BI "defmode " mode
+ .RS 0
+ .PP
+@@ -2694,24 +2683,6 @@ will wait before flushing the logfile buffer to the file-system. The
+ default value is 10 seconds.
+ .RE
+ .TP
+-.BR "login [ on | off ]"
+-.RS 0
+-.PP
+-Adds or removes the entry in the utmp database file for the current window.
+-This controls if the window is `logged in'.
+-When no parameter is given, the login state of the window is toggled.
+-Additionally to that toggle, it is convenient having a `log in' and a `log out'
+-key. E.\|g. `bind I login on' and `bind O login off' will map these
+-keys to be C-a I and C-a O.
+-The default setting (in config.h.in) should be \*Qon\*U for a 
+-.I screen
+-that runs under suid-root.
+-Use the \*Qdeflogin\*U command to change the default login state for new 
+-windows. Both commands are only present when 
+-.I screen
+-has been compiled with utmp support.
+-.RE
+-.TP
+ .BR "logtstamp " [ on | off ]
+ .TP
+ .IR "\fBlogtstamp after\fR " [ secs ]
+diff --git a/doc/screen.texinfo b/doc/screen.texinfo
+index 46d7426..4cfbd31 100644
+--- a/doc/screen.texinfo
++++ b/doc/screen.texinfo
+@@ -191,7 +191,7 @@ window is closed.  This is useful for working with @code{talk},
+ @code{script}, @code{shutdown}, @code{rsend}, @code{sccs} and other
+ similar programs that use the utmp file to determine who you are. As
+ long as @code{screen} is active on your terminal, the terminal's own
+-record is removed from the utmp file.  @xref{Login}.
++record is removed from the utmp file.
+ 
+ 
+ @c ----------------------------------------------------------------
+@@ -393,7 +393,7 @@ Control}). Its use is discouraged.
+ @item -l
+ @itemx -ln
+ Turn login mode on or off (for @file{/etc/utmp} updating).  This option
+-is equivalent to the @code{deflogin} command (@pxref{Login}).
++is available only when @code{screen} is built with utmp support.
+ 
+ @item -ls [@var{match}]
+ @itemx -list [@var{match}]
+@@ -801,11 +801,6 @@ Destroy the current window.
+ Fully refresh the current window.
+ @xref{Redisplay}.
+ 
+-@item @kbd{C-a L}
+-(login)@*
+-Toggle the current window's login state.
+-@xref{Login}.
+-
+ @item @kbd{C-a m}
+ @itemx @kbd{C-a C-m}
+ (lastmsg)@*
+@@ -1205,10 +1200,6 @@ Select default window hardstatus line.
+ Select default window logging behavior.
+ @xref{Log}.
+ 
+-@item deflogin @var{state}
+-Select default utmp logging behavior.
+-@xref{Login}.
+-
+ @item defmode @var{mode}
+ Select default file mode for ptys.
+ @xref{Mode}.
+@@ -1445,10 +1436,6 @@ Log all output in the current window.
+ Place where to collect logfiles.
+ @xref{Log}.
+ 
+-@item login [@var{state}]
+-Log the window in @file{/run/utmp}.
+-@xref{Login}.
+-
+ @item logtstamp [@var{state}]
+ Configure logfile time-stamps.
+ @xref{Log}.
+@@ -2930,7 +2917,6 @@ terminal emulation itself.
+ * Naming Windows::  Control the name of the window
+ * Console::         See the host's console messages
+ * Kill::            Destroy an unwanted window
+-* Login::           Control @file{/run/utmp} logging
+ * Mode::            Control the file mode of the pty
+ * Monitor::         Watch for activity or inactivity in a window
+ * Windows::         List the active windows
+@@ -3126,28 +3112,6 @@ reason, it is probably wise to use a different command character
+ sequence, such as @kbd{C-a K} (@pxref{Key Binding}).
+ @end deffn
+ 
+-@node Login
+-@section Login
+-
+-@deffn Command deflogin state
+-(none)@*
+-Same as the @code{login} command except that the default setting for new
+-windows is changed.  This defaults to `on' unless otherwise specified at
+-compile time (@pxref{Installation}). Both commands are only present when
+-@code{screen} has been compiled with utmp support.
+-@end deffn
+-
+-@kindex L
+-@deffn Command login [state]
+-(@kbd{C-a L})@*
+-Adds or removes the entry in @file{/etc/utmp} for the current window.
+-This controls whether or not the window is @dfn{logged in}.  In addition
+-to this toggle, it is convenient to have ``log in'' and ``log out''
+-keys.  For instance, @code{bind I login on} and @code{bind O 
+-login off} will map these keys to be @kbd{C-a I} and @kbd{C-a O}
+-(@pxref{Key Binding}).
+-@end deffn
+-
+ @node Mode
+ @section Mode
+ @deffn Command defmode mode
+@@ -3231,7 +3195,7 @@ window (or its title).
+ 
+ The current window is marked with a @samp{*};
+ the previous window is marked with a @samp{-}; 
+-all the windows that are logged in are marked with a @samp{$} (@pxref{Login});
++all the windows that are logged in are marked with a @samp{$};
+ a background window that has received a bell is marked with a @samp{!};
+ a background window that is being monitored and has had activity occur is 
+ marked with an @samp{@@} (@pxref{Monitor});
+diff --git a/etc/etcscreenrc b/etc/etcscreenrc
+index 7ed8476..25d6e2a 100644
+--- a/etc/etcscreenrc
++++ b/etc/etcscreenrc
+@@ -10,7 +10,6 @@
+ 
+ #defflow on # will force screen to process ^S/^Q
+ 
+-deflogin on
+ #autodetach off
+ 
+ vbell on
+@@ -88,7 +87,4 @@ bind ^\
+ #make them better
+ bind \\ quit
+ bind K kill
+-bind I login on
+-bind O login off
+ bind } history
+-
+diff --git a/etc/screenrc b/etc/screenrc
+index 02cc9dd..7ec8af1 100644
+--- a/etc/screenrc
++++ b/etc/screenrc
+@@ -119,8 +119,6 @@ bind ^h
+ bind h
+ #make them better
+ bind 'K' kill
+-bind 'I' login on
+-bind 'O' login off
+ bind '}' history
+ 
+ # Yet another hack:

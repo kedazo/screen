@@ -1,0 +1,43 @@
+From: Peter Dey <debian@realmtech.net>
+Date: Sat, 8 Aug 2026 13:37:35 +0200
+Subject: Prevent UTF-8 title corruption in forwarded OSC strings
+Description: Emit OSC title payload as raw bytes
+ Avoid re-encoding already-UTF-8 data when forwarding to the terminal.
+Author: Peter Dey <debian@realmtech.net>
+Bug-Debian: https://bugs.debian.org/1145436
+Forwarded: https://savannah.gnu.org/bugs/?68643
+Last-Update: 2026-08-24
+
+---
+ display.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/display.c b/display.c
+index 71023b7..b4ed496 100644
+--- a/display.c
++++ b/display.c
+@@ -2145,6 +2145,15 @@ void ChangeScrollRegion(int newtop, int newbot)
+ 
+ #define WT_FLAG "2"		/* change to "0" to set both title and icon */
+ 
++/* Emit a byte string verbatim without UTF-8 recoding. */
++static void AddStrRaw(const char *str)
++{
++	unsigned char c;
++
++	while ((c = (unsigned char)*str++) != '\0')
++		AddChar(c);
++}
++
+ void SetXtermOSC(int i, char *s, char *t)
+ {
+ 	static char *oscs[][2] = {
+@@ -2168,7 +2177,7 @@ void SetXtermOSC(int i, char *s, char *t)
+ 	D_xtermosc[i] = 1;
+ 	AddStr("\033]");
+ 	AddStr(oscs[i][0]);
+-	AddStr(s);
++	AddStrRaw(s);
+ 	AddStr(t);
+ }
+ 

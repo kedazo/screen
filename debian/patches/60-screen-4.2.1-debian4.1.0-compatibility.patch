@@ -1,0 +1,82 @@
+From: Axel Beckert <abe@debian.org>
+Date: Wed, 5 Aug 2026 16:06:32 +0200
+Subject: Patch to make 4.2.1 compatible with Debian's 4.1.0 and
+
+Forwarded: not-needed
+
+4.2.0 packages 4.2.1 includes the Debian patches to extend the login
+name and $TERM length, but uses even larger values. This causes
+screen clients to no more be able to talk to older screen
+servers. See #644788 for a discussion of the same issue with earlier
+release combinations (4.1.0 vs 4.0.3).
+
+For now this patch sets the mentioned values back to those which
+werew in use in Debian before (and seemed to be large enough for use
+in Debian).
+---
+ os.h     | 4 ++--
+ screen.h | 8 ++++++--
+ socket.c | 4 ++--
+ 3 files changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/os.h b/os.h
+index b350e43..b9dec9b 100644
+--- a/os.h
++++ b/os.h
+@@ -161,6 +161,6 @@ typedef char* slot_t;	/* used internally in utmp.c */
+ /* Changing those you won't be able to attach to your old sessions
+  * when changing those values in official tree don't forget to bump
+  * MSG_VERSION */
+-#define MAXTERMLEN	32
+-#define MAXLOGINLEN	256
++#define MAXTERMLEN	40
++#define MAXLOGINLEN	50
+ 
+diff --git a/screen.h b/screen.h
+index 9cfb2c8..efb2835 100644
+--- a/screen.h
++++ b/screen.h
+@@ -55,6 +55,10 @@
+ #define DEFAULTHISTHEIGHT	100
+ #define DEFAULT_BUFFERFILE	"/tmp/screen-exchange"
+ 
++#ifndef PATH_MAX
++#define PATH_MAX 4096
++#endif
++
+ struct mode {
+ 	struct termios tio;
+ #if defined(TIOCKSET)
+@@ -106,7 +110,7 @@ struct mode {
+  * 3:	screen version 4.2.0		(was incorrectly originally. Patched here)
+  * 4:	screen version 4.2.1		(bumped once again due to changed terminal and login length)
+  */
+-#define MSG_VERSION	4
++#define MSG_VERSION	2
+ 
+ #define MSG_REVISION	(('m'<<24) | ('s'<<16) | ('g'<<8) | MSG_VERSION)
+ typedef struct Message Message;
+@@ -124,7 +128,7 @@ struct Message {
+ 			int nargs;
+ 			char line[MAXPATHLEN];
+ 			char dir[MAXPATHLEN];
+-			char screenterm[MAXTERMLEN + 1];/* is screen really "screen" ? */
++			char screenterm[20];	/* is screen really "screen" ? */
+ 		} create;
+ 		struct {
+ 			char auser[MAXLOGINLEN + 1];	/* username */
+diff --git a/socket.c b/socket.c
+index b4a0cad..bc4118d 100644
+--- a/socket.c
++++ b/socket.c
+@@ -486,8 +486,8 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
+ 		goto end;
+ 	}
+ 	if (nwin->term != nwin_undef.term)
+-		strncpy(m.m.create.screenterm, nwin->term, MAXTERMLEN);
+-	m.m.create.screenterm[MAXTERMLEN] = '\0';
++		strncpy(m.m.create.screenterm, nwin->term, 20 - 1);
++	m.m.create.screenterm[20 - 1] = '\0';
+ 	m.protocol_revision = MSG_REVISION;
+ 	if (write(s, (char *)&m, sizeof(Message)) != sizeof(Message))
+ 		Msg(errno, "write");

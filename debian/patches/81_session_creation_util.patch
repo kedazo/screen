@@ -1,0 +1,146 @@
+From: Jan Christoph Nordholz <hesso@pool.math.tu-berlin.de>
+Date: Wed, 5 Aug 2026 16:06:32 +0200
+Subject: _session_creation_util
+
+Bug-Debian: https://bugs.debian.org/206572
+Bug-Debian: https://bugs.debian.org/484655
+Forwarded: no
+Last-Update: 2026-05-20
+
+Description: Utility functions to compute session creation timestamps for chronological -ls and youngest -RR
+ Affects screen's behaviour in the following situations:
+ * 'screen -ls' lists available sessions sorted chronologically
+ * 'screen -RR' now picks the youngest session instead of an arbitrary one
+---
+ misc.c | 98 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ misc.h |  1 +
+ 2 files changed, 99 insertions(+)
+
+diff --git a/misc.c b/misc.c
+index 2690923..93aa04a 100644
+--- a/misc.c
++++ b/misc.c
+@@ -34,9 +34,11 @@
+ #include <sys/types.h>
+ #include <sys/stat.h>		/* mkdir() declaration */
+ #include <signal.h>
++#include <errno.h>
+ #include <stdint.h>
+ #include <string.h>
+ #include <stdbool.h>
++#include <fcntl.h>
+ 
+ #include "screen.h"
+ 
+@@ -238,3 +240,99 @@ int AddXChars(char *buf, int len, char *str)
+ 	*p = 0;
+ 	return p - buf;
+ }
++
++static time_t GetBootTime(void)
++{
++	char statbuf[128], *endptr;
++	FILE *fp;
++	long boot_l;
++	time_t boot_time;
++
++	fp = fopen("/proc/stat", "r");
++	if (fp == NULL)
++		return 0;
++	while (fgets(statbuf, sizeof(statbuf), fp)) {
++		if (strncmp(statbuf, "btime ", 6) != 0)
++			continue;
++		errno = 0;
++		boot_l = strtol(statbuf + 6, &endptr, 10);
++		fclose(fp);
++		if (errno == ERANGE || endptr == statbuf + 6)
++			return 0;
++		if (*endptr != '\0' && *endptr != '\n' && *endptr != ' ' && *endptr != '\t')
++			return 0;
++		if (boot_l <= 0)
++			return 0;
++		boot_time = (time_t)boot_l;
++		if ((long)boot_time != boot_l)
++			return 0;
++		return boot_time;
++	}
++	fclose(fp);
++	return 0;
++}
++
++time_t SessionCreationTime(const char *fifo)
++{
++	char ppath[32], pdata[512];
++	int pfd, field;
++	ssize_t rr;
++	char *jiffies, *endptr;
++	long pid_l;
++	unsigned long long start_time;
++	long clock_ticks;
++	time_t boot_time, created;
++
++	errno = 0;
++	pid_l = strtol(fifo, &endptr, 10);
++	if (errno == ERANGE || endptr == fifo)
++		return 0;
++	if (*endptr != '\0' && *endptr != '.')
++		return 0;
++	if (pid_l <= 0)
++		return 0;
++	snprintf(ppath, sizeof(ppath), "/proc/%ld/stat", pid_l);
++	pfd = open(ppath, O_RDONLY);
++	if (pfd < 0)
++		return 0;
++	rr = read(pfd, pdata, sizeof(pdata) - 1);
++	close(pfd);
++	if (rr <= 0)
++		return 0;
++	pdata[rr] = '\0';
++
++	jiffies = strrchr(pdata, ')');
++	if (jiffies == NULL || jiffies[1] != ' ' || jiffies[2] == '\0')
++		return 0;
++	jiffies += 3;
++	jiffies = strchr(jiffies, ' ');
++	if (jiffies == NULL || jiffies[1] == '\0')
++		return 0;
++	jiffies++;
++	for (field = 4; field < 22; field++) {
++		jiffies = strchr(jiffies, ' ');
++		if (jiffies == NULL || jiffies[1] == '\0')
++			return 0;
++		jiffies++;
++	}
++	errno = 0;
++	start_time = strtoull(jiffies, &endptr, 10);
++	if (errno == ERANGE || endptr == jiffies)
++		return 0;
++	if (*endptr != '\0' && *endptr != '\n' && *endptr != ' ' && *endptr != '\t')
++		return 0;
++
++	clock_ticks = sysconf(_SC_CLK_TCK);
++	if (clock_ticks <= 0)
++		return 0;
++	boot_time = GetBootTime();
++	if (boot_time <= 0)
++		return 0;
++	start_time = (unsigned long long)boot_time + start_time / (unsigned long long)clock_ticks;
++	if (start_time < (unsigned long long)boot_time)
++		return 0;
++	created = (time_t)start_time;
++	if (created <= 0 || (unsigned long long)created != start_time)
++		return 0;
++	return created;
++}
+diff --git a/misc.h b/misc.h
+index 70c5c1f..7c1df59 100644
+--- a/misc.h
++++ b/misc.h
+@@ -27,6 +27,7 @@ void  xsetegid  (int);
+ #endif
+ int   AddXChar (char *, int);
+ int   AddXChars (char *, int, char *);
++time_t SessionCreationTime (const char *);
+ 
+ #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+ 

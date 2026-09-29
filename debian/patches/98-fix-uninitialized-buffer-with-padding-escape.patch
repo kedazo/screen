@@ -1,0 +1,28 @@
+From: Daniel Serpell <daniel.serpell@gmail.com>
+Date: Wed, 5 Aug 2026 16:06:33 +0200
+Subject: Fixes uninitialized buffer with padding escapes
+
+Bug-Debian: https://bugs.debian.org/1136895
+Forwarded: https://savannah.gnu.org/bugs/index.php?68263
+Last-Update: 2026-05-17
+
+After a padding escape (i.e. '%10=' or '%030='), the returned buffer has the
+last byte not initialized, affecting the rendering. Return earlier so the
+advancing of the pointer is skipped, as it is not needed after the actual
+filling character.
+---
+ winmsg.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/winmsg.c b/winmsg.c
+index f542b66..0bdc54f 100644
+--- a/winmsg.c
++++ b/winmsg.c
+@@ -314,6 +314,7 @@ winmsg_esc_ex(PadOrTrunc, int *numpad, int *lastpad, int padlen)
+ 			*lastpad = wmbc->p - winmsg->buf;
+ 			wmbc->trunc.pos = -1;
+ 			wmbc->trunc.ellip = false;
++			return; /* wmbc->p already correctly positioned by wmbc_putchar */
+ 		}
+ 	} else if (padlen) {
+ 		*wmbc->p = CHRPAD;	/* internal pad representation */

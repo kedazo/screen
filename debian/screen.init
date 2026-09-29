@@ -1,0 +1,47 @@
+#!/bin/sh
+#
+# SysV init compatibility helper for GNU Screen.
+# Ensure /run/screen exists and has correct permissions
+#
+
+### BEGIN INIT INFO
+# Provides:          screen-cleanup
+# Required-Start:    $remote_fs
+# Required-Stop:     $remote_fs
+# Default-Start:     S
+# Default-Stop:
+# Short-Description: screen runtime directory setup
+# Description: Ensure /run/screen exists and applies appropriate permissions
+### END INIT INFO
+
+set -e
+
+test -f /usr/bin/screen || exit 0
+
+SCREENDIR=/run/screen
+
+case "$1" in
+start)
+    if test -L $SCREENDIR || ! test -d $SCREENDIR; then
+        rm -f $SCREENDIR
+        mkdir $SCREENDIR
+        chown root:utmp $SCREENDIR
+        [ -x /sbin/restorecon ] && /sbin/restorecon $SCREENDIR
+    fi
+
+    # Local admins may change /usr/bin/screen mode with dpkg-statoverride.
+    # Adjust $SCREENDIR permissions to match the selected setuid/setgid mode.
+    BINARYPERM=`stat -c%a /usr/bin/screen`
+    if [ "$BINARYPERM" -ge 4000 ]; then
+        chmod 0755 $SCREENDIR
+    elif [ "$BINARYPERM" -ge 2000 ]; then
+        chmod 0775 $SCREENDIR
+    else
+        chmod 1777 $SCREENDIR
+    fi
+    ;;
+stop|restart|reload|force-reload)
+    ;;
+esac
+
+exit 0

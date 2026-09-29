@@ -1,0 +1,100 @@
+From: Peter Dey <debian@realmtech.net>
+Date: Thu, 6 Aug 2026 21:20:00 +0200
+Subject: Fix UTF-8 width accounting for hardstatus/caption rendering
+Description: Non-ASCII captions can skew hardstatus padding, causing a
+ hardstatus to be under-padded or over-padded (thus causing an overflow
+ to the next line).  Calculate widths in cells, rather than bytes,
+ so UTF-8 multibyte content does not affect padding lengths
+Author: Peter Dey <debian@realmtech.net>
+Bug-Debian: https://bugs.debian.org/1145436
+Forwarded: https://savannah.gnu.org/bugs/?68643
+Last-Update: 2026-08-23
+
+---
+ display.c |  8 +++++---
+ winmsg.c  | 25 ++++++++++++++++++++++++-
+ 2 files changed, 29 insertions(+), 4 deletions(-)
+
+Index: screen/display.c
+===================================================================
+--- screen.orig/display.c
++++ screen/display.c
+@@ -1589,7 +1589,7 @@ static int strlen_onscreen(char *c, char
+ 	while (*c && (!end || c < end)) {
+ 		int v, dec = 0;
+ 		do {
+-			v = FromUtf8(*c++, &dec);
++			v = FromUtf8((unsigned char)*c++, &dec);
+ 			if (v == -2)
+ 				c--;
+ 		}
+@@ -1610,14 +1610,16 @@ static int PrePutWinMsg(char *s, int sta
+ 	   Ideally, this would not be necessary. But fixing it the Right Way will
+ 	   probably take way more time. So this will have to do for now. */
+ 	if (D_encoding == UTF8) {
++		int extra;
+ 		int chars = strlen_onscreen((s + start), (s + max));
++		extra = (max - start) - chars;
+ 		D_encoding = 0;
+-		PutWinMsg(s, start, max + ((max - start) - chars));	/* Multibyte count */
++		PutWinMsg(s, start, max + extra);	/* Multibyte count */
+ 		D_encoding = UTF8;
+-		D_x -= (max - chars);	/* Yak! But this is necessary to count for
++		D_x -= extra;		/* Yak! But this is necessary to count for
+ 					   the fact that not every byte represents a
+ 					   character. */
+-		return start + chars;
++		return max;
+ 	} else {
+ 		PutWinMsg(s, start, max);
+ 		return max;
+Index: screen/winmsg.c
+===================================================================
+--- screen.orig/winmsg.c
++++ screen/winmsg.c
+@@ -43,6 +43,7 @@
+ #include "help.h"
+ #include "logfile.h"
+ #include "mark.h"
++#include "encoding.h"
+ #include "process.h"
+ #include "sched.h"
+ 
+@@ -81,14 +82,36 @@ static const char months[] = "JanFebMarA
+ 
+ static void _MakeWinMsgEvRec(WinMsgBufContext *, WinMsgCond *, char *, Window *, int *, int);
+ 
++static int strlen_onscreen(char *c, char *end)
++{
++	int len = 0;
++	while (*c && (!end || c < end)) {
++		int v, dec = 0;
++		do {
++			v = FromUtf8((unsigned char)*c++, &dec);
++			if (v == -2)
++				c--;
++		}
++		while (v < 0 && (!end || c < end));
++		if (!utf8_iscomb(v)) {
++			if (utf8_isdouble(v))
++				len++;
++			len++;
++		}
++	}
++	return len;
++}
+ 
+ /* TODO: remove the redundant arguments */
+ static char *pad_expand(WinMsgBuf *winmsg, char *buf, char *p, int numpad, int padlen)
+ {
+ 	char *pn, *pn2;
+-	int i, r;
++	int i, r, extra = 0;
+ 
++	if (D_encoding == UTF8)
++		extra = (p - buf) - strlen_onscreen(buf, p);
+ 	padlen = padlen - (p - buf);	/* space for rent */
++	padlen += extra;	/* adjust byte count to screen cell width */
+ 	if (padlen < 0)
+ 		padlen = 0;
+ 	pn2 = pn = p + padlen;

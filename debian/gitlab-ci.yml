@@ -1,0 +1,4 @@
+# Temporary gitlab-ci.yml file to redirect to standard salsa-ci.yml file
+# until all repository forks have updated the CI file path setting
+include:
+  - local: 'debian/salsa-ci.yml'

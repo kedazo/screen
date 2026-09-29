@@ -1,0 +1,22 @@
+# There is no status, it's just for cleaning up.
+screen: init.d-script-does-not-implement-status-option [etc/init.d/screen-cleanup]
+
+# It doesn't need redirection to systemctl. There is
+# /etc/tmpfiles.d/screen-cleanup.conf and
+# /lib/systemd/system/screen-cleanup.service for that.
+screen: init.d-script-does-not-source-init-functions [etc/init.d/screen-cleanup]
+
+# False positive, handled by debian/tmpfile, debian/postinst and
+# debian/postrm. See https://bugs.debian.org/740301 and
+# https://bugs.launchpad.net/bugs/1462692 for the context of this
+# implementation.
+screen: missing-systemd-service-for-init.d-rcS-script screen-cleanup [etc/init.d/screen-cleanup]
+
+# False positive, it's user and group
+screen: spelling-error-in-readme-debian root root (duplicate word) root [usr/share/doc/screen/README.Debian.gz]
+
+# On purpose, documentation on national encoding
+screen: national-encoding [usr/share/doc/screen/terminfo/8bits]
+
+# Manpage uses tbl preprocessor; lintian's groff check warns when tbl is not run.
+screen: groff-message an.tmac:<standard input>:*: warning: tbl preprocessor failed* [usr/share/man/man1/screen.1.gz:*]

@@ -1,0 +1,27 @@
+From: Sven Joachim <svenjoac@gmx.de>
+Date: Sat, 2 Apr 2016 13:31:00 +0200
+Subject: Prefer libtinfo over libcurses
+
+Origin: https://bugs.debian.org/cgi-bin/bugreport.cgi?filename=0001-Prefer-libtinfo-over-libcurses.patch;att=1;msg=14;bug=819789
+Bug-Debian: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=819789
+Forwarded: no
+
+Try to link with -ltinfo before -lcurses to avoid a spurious
+dependency on systems where ncurses is built with "--with-termlib".
+---
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index 6c0976a..b9749a3 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -63,7 +63,7 @@ dnl
+ AC_CHECK_FUNCS([seteuid setegid setreuid setresuid])
+ 
+ dnl curses compatible lib, we do forward declaration ourselves, only need to link to proper library
+-AC_SEARCH_LIBS([tgetent], [curses termcap termlib ncursesw tinfow ncurses tinfo], [], [
++AC_SEARCH_LIBS([tgetent], [tinfow tinfo ncursesw ncurses curses termcap termlib], [], [
+ 	AC_MSG_ERROR([unable to find tgetent() function])
+ ])
+ 

@@ -1,0 +1,2 @@
+# False positives (long lines that are clearly no issue)
+screen source: very-long-line-length-in-source-file 773 > 512 [debian/tests/t/bug-982435-CVE-2021-26937.crash:1]
